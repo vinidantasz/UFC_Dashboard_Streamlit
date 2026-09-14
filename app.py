@@ -1,8 +1,7 @@
+from pathlib import Path
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import kagglehub
-from kagglehub import KaggleDatasetAdapter
 
 # ------------------------------------------------------------
 # CONFIGURAÇÃO DA PÁGINA
@@ -33,59 +32,10 @@ st.markdown("""
 # ------------------------------------------------------------
 # CARREGAMENTO DOS DADOS
 # ------------------------------------------------------------
-@st.cache_data
-def carregar_dados(dataset_id: str, file_path: str = ""):
-    """Carrega os dados usando a API do Kaggle via `kagglehub`.
-
-    Parâmetros:
-    - dataset_id: string no formato 'owner/dataset' (ex.: 'scarekrow/ufc-data')
-    - file_path: caminho opcional para um arquivo específico dentro do dataset
-    """
-    # Se o usuário não informou um arquivo, tentamos detectar automaticamente
-    supported_exts = [
-        ".csv", ".tsv", ".json", ".jsonl", ".xml", ".parquet", ".feather",
-        ".sqlite", ".sqlite3", ".db", ".db3", ".s3db", ".dl3", ".xls", ".xlsx",
-        ".xlsm", ".xlsb", ".odf", ".ods", ".odt"
-    ]
-
-    if not file_path:
-        try:
-            # Tenta usar a API oficial `kaggle` para listar arquivos do dataset
-            from kaggle import KaggleApi
-
-            api = KaggleApi()
-            api.authenticate()
-            listing = api.dataset_list_files(dataset_id)
-            for f in listing.files:
-                name = f.name if hasattr(f, "name") else str(f)
-                lname = name.lower()
-                for ext in supported_exts:
-                    if lname.endswith(ext):
-                        file_path = name
-                        break
-                if file_path:
-                    break
-        except Exception:
-            # Falha ao usar a API oficial; continuará sem arquivo
-            pass
-
-    try:
-        dados = kagglehub.load_dataset(
-            KaggleDatasetAdapter.PANDAS,
-            dataset_id,
-            file_path
-        )
-        dados["event_date"] = pd.to_datetime(dados["event_date"], errors="coerce")
-        dados["year"] = dados["event_date"].dt.year
-        return dados
-    except Exception as e:
-        st.error(f"Falha ao carregar dados via Kaggle API: {e}")
-        return pd.DataFrame()
-
-# Fonte de dados (Kaggle) - uso silencioso de valores padrão
-dataset_input = "scarekrow/ufc-data"
-file_path_input = ""
-df = carregar_dados(dataset_input, file_path_input)
+# Carrega o arquivo CSV local presente no workspace
+base_dir = Path(__file__).resolve().parent
+data_path = base_dir / "UFC_full_data_silver_v2.csv"
+df = pd.read_csv(data_path)
 
 def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
