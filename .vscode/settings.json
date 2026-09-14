@@ -1,0 +1,14 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "icacls": true,
+        "/^cmd /c \"icacls %USERPROFILE%\\\\\\.kaggle\\\\access_token /inheritance:r && icacls %USERPROFILE%\\\\\\.kaggle\\\\access_token /grant %USERNAME%:F\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^python -m streamlit run app\\.py$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "&": true
+    }
+}
